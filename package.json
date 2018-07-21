@@ -1,0 +1,19 @@
+{
+  "name": "ninjakatt-plugin-qbittorrent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^6.0.1",
+    "ninjakatt-plugin-base": "file:../base",
+    "parse-torrent": "^6.0.1",
+    "pretty-bytes": "^5.1.0",
+    "qbittorrent-api": "^1.0.0"
+  }
+}
