@@ -7,7 +7,15 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Joachim Lindström",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lindstrm/ninjakatt-plugin-qbittorrent.git"
+  },
+  "homepage": "https://github.com/lindstrm/ninjakatt-plugin-qbittorrent",
+  "bugs": {
+    "url": "https://github.com/lindstrm/ninjakatt-plugin-qbittorrent/issues"
+  },
   "license": "ISC",
   "dependencies": {
     "fs-extra": "^6.0.1",
