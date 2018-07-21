@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "fs-extra": "^6.0.1",
-    "ninjakatt-plugin-base": "file:../base",
+    "ninjakatt-plugin-base": "^1.0.0",
     "parse-torrent": "^6.0.1",
     "pretty-bytes": "^5.1.0",
     "qbittorrent-api": "^1.0.0"
