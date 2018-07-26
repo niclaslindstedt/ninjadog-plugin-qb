@@ -280,6 +280,7 @@
     "http://85.17.19.180/announce",
     "udp://85.17.19.180:80/announce",
     "http://210.244.71.25:6969/announce",
-    "http://85.17.19.180/announce"
+    "http://85.17.19.180/announce",
+    "udp://exodus.desync.com:6969/announce"
   ]
 }

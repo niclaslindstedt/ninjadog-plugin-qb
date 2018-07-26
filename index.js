@@ -25,6 +25,11 @@ module.exports = class Qbittorrent extends Base {
     }, 0);
   }
 
+  checkSeedTimer() {
+    setTimeout(() => {
+      this.checkSeed();
+    }, 300000);
+  }
   /**
    * Connect to qbittorrent
    * @returns {qb.connect}
@@ -52,7 +57,8 @@ module.exports = class Qbittorrent extends Base {
               global.emitter.emit(
                 'message',
                 `Error removing ${torrent.name}`,
-                'error'
+                'error',
+                Qbittorrent.name
               );
               return;
             }
@@ -63,6 +69,8 @@ module.exports = class Qbittorrent extends Base {
           });
         }
       });
+
+      this.checkSeedTimer();
     });
 
     function sendRemoveMessage(status, torrent) {
@@ -87,17 +95,27 @@ module.exports = class Qbittorrent extends Base {
           message = `Removed ${name}. ${self.seedInfo(torrent)}`;
       }
 
-      global.emitter.emit('message', message, 'remove');
+      global.emitter.emit('message', message, 'remove', Qbittorrent.name);
     }
   }
 
   addTorrent(torrentPath) {
     this.client.add(torrentPath, removeFilename(torrentPath), '', error => {
       if (error) {
-        global.emitter.emit('message', `Error adding ${torrentPath}`, 'error');
+        global.emitter.emit(
+          'message',
+          `Error adding ${torrentPath}`,
+          'error',
+          Qbittorrent.name
+        );
         return;
       }
-      global.emitter.emit('message', `Added ${filename(torrentPath)}`, 'add');
+      global.emitter.emit(
+        'message',
+        `Added ${filename(torrentPath)}`,
+        'add',
+        Qbittorrent.name
+      );
       this.moveTorrent(torrentPath);
     });
   }
