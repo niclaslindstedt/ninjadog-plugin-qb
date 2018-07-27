@@ -3,7 +3,12 @@ const qb = require('qbittorrent-api');
 const fs = require('fs-extra');
 const parseTorrent = require('parse-torrent');
 const prettyBytes = require('pretty-bytes');
-const { shouldRemoveTorrent, removeFilename, isTorrent } = require('./helpers');
+const {
+  shouldRemoveTorrent,
+  removeFilename,
+  isTorrent,
+  extractRootDomain
+} = require('./helpers');
 const { filename } = require(`${global.appRoot}/lib/helpers`);
 
 /**
@@ -164,7 +169,14 @@ module.exports = class Qbittorrent extends Base {
       `/${prefix}/list`,
       (req, res) => {
         this.client.all('', {}, (error, list) => {
-          res.status(200).send(list);
+          res
+            .status(200)
+            .send(
+              list.map(item => ({
+                ...item,
+                trackerName: extractRootDomain(item.tracker)
+              }))
+            );
         });
       }
     );
