@@ -169,14 +169,23 @@ module.exports = class Qbittorrent extends Base {
       `/${prefix}/list`,
       (req, res) => {
         this.client.all('', {}, (error, list) => {
-          res
-            .status(200)
-            .send(
-              list.map(item => ({
-                ...item,
-                trackerName: extractRootDomain(item.tracker)
-              }))
-            );
+          res.status(200).send(
+            list.map(item => ({
+              ...item,
+              trackerName: extractRootDomain(item.tracker)
+            }))
+          );
+        });
+      }
+    );
+
+    emitter.emit(
+      'webserver.add-route',
+      'get',
+      `/${prefix}/transferinfo`,
+      (req, res) => {
+        this.client.transferInfo((error, info) => {
+          res.status(200).send(info);
         });
       }
     );
