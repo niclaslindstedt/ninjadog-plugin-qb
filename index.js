@@ -153,7 +153,7 @@ module.exports = class Qbittorrent extends Base {
       'file.add',
       path => {
         if (isTorrent(path)) {
-          setTimeout(() => this.addTorrent(path), 1000);
+          setTimeout(() => this.addTorrent(path), 2000);
         }
       },
       Qbittorrent.name
