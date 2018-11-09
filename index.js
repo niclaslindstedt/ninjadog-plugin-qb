@@ -42,7 +42,7 @@ module.exports = class Qbittorrent extends Base {
    */
   get client() {
     return qb.connect(
-      `http://${this.settings.host}:${this.settings.port}`,
+      `${this.settings.host}:${this.settings.port}`,
       this.settings.username,
       this.settings.password
     );
