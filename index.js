@@ -1,8 +1,8 @@
-const Base = require('ninjakatt-plugin-base');
 const qb = require('qbittorrent-api');
 const fs = require('fs-extra');
 const parseTorrent = require('parse-torrent');
 const prettyBytes = require('pretty-bytes');
+const path = require('path');
 const {
   shouldRemoveTorrent,
   removeFilename,
@@ -14,9 +14,9 @@ const { filename } = require(`${global.appRoot}/lib/helpers`);
 /**
  * Qbittorrent.
  */
-module.exports = class Qbittorrent extends Base {
+module.exports = class Qbittorrent {
   constructor() {
-    super(__dirname);
+    this.construct(__dirname);
   }
 
   setup() {
@@ -126,11 +126,10 @@ module.exports = class Qbittorrent extends Base {
   }
 
   moveTorrent(torrentPath) {
-    fs.ensureDirSync(this.settings.loadedTorrentsPath);
+    const tempPath = path.resolve(global.settingsPath, 'loadedTorrents');
+    fs.ensureDirSync(tempPath);
 
-    const newPath = `${this.settings.loadedTorrentsPath}\\${filename(
-      torrentPath
-    )}`;
+    const newPath = `${tempPath}\\${filename(torrentPath)}`;
 
     return fs
       .move(torrentPath, newPath, { overwrite: true })

@@ -3,7 +3,6 @@
   "port": 8081,
   "username": "admin",
   "password": "admin123",
-  "loadedTorrentsPath": ".\\loadedTorrents",
   "removeTorrentWithPublicTrackerWhenComplete": true,
   "seed": {
     "ratio": 10,
