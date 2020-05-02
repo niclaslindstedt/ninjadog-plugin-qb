@@ -1,4 +1,4 @@
-const qb = require('qbittorrent-api');
+const qb = require('@electorrent/node-qbittorrent');
 const fs = require('fs-extra');
 const parseTorrent = require('parse-torrent');
 const prettyBytes = require('pretty-bytes');
@@ -19,15 +19,43 @@ module.exports = class Qbittorrent {
     this.construct(__dirname);
   }
 
-  setup() {
+  get qbitsettings() {
+    return {
+      host: this.settings.host,
+      port: this.settings.port,
+      user: this.settings.username,
+      pass: this.settings.password,
+    }
+  }
+
+  async setup() {
+    this.qb = new qb(this.qbitsettings)  
+
     this.setupListeners();
-    this.checkSeed();
+    this.login();
 
     setTimeout(() => {
       if (global.Ninjakatt.plugins.has('Webserver')) {
         this.addWebroutes();
       }
     }, 0);
+  }
+
+  login() {
+    this.qb.login(function(err) {
+      if (err && err.code === 'ECONNREFUSED') {
+        global.emitter.emit(
+          'message',
+          `Could not connect to QBittorrent with these settings: ${JSON.stringify(this.qbitsettings)}`,
+          'error',
+          Qbittorrent.name
+        );
+        setTimeout(() => {
+          this.login();
+        }, 60000)
+      }      
+      this.checkSeed();
+    }.bind(this));
   }
 
   checkSeedTimer() {
@@ -37,24 +65,26 @@ module.exports = class Qbittorrent {
   }
   /**
    * Connect to qbittorrent
-   * @returns {qb.connect}
+   * @returns {qb}
    * @readonly
    */
   get client() {
-    return qb.connect(
-      `${this.settings.host}:${this.settings.port}`,
-      this.settings.username,
-      this.settings.password
-    );
+    try {
+      return this.qb;
+    } catch (e) {
+      console.log(e);
+      
+    }
   }
 
   checkSeed(options) {
     const self = this;
     options = options || { label: 'public' };
-    this.client.seeding(options, (error, items) => {
+    this.client.getTorrents((error, items) => {
       if (error) {
         return;
       }
+      
       items.forEach(torrent => {
         if (shouldRemoveTorrent(torrent, this.settings) > 0) {
           this.client.delete(torrent, error => {
@@ -105,7 +135,11 @@ module.exports = class Qbittorrent {
   }
 
   addTorrent(torrentPath) {
-    this.client.add(torrentPath, removeFilename(torrentPath), '', error => {
+    const options = { 
+      savepath: removeFilename(torrentPath)
+    };
+
+    this.client.addTorrentFile(torrentPath, options, error => {
       if (error) {
         global.emitter.emit(
           'message',
@@ -167,7 +201,10 @@ module.exports = class Qbittorrent {
       'get',
       `/${prefix}/list`,
       (req, res) => {
-        this.client.all('', {}, (error, list) => {
+        this.client.getTorrents((error, list) => {
+          if (error) {
+            return res.status(400).send()
+          }
           res.status(200).send(
             list.map(item => ({
               ...item,
@@ -183,7 +220,10 @@ module.exports = class Qbittorrent {
       'get',
       `/${prefix}/transferinfo`,
       (req, res) => {
-        this.client.transferInfo((error, info) => {
+        this.client.syncMaindata((error, info) => { 
+          if (error) {
+            return res.status(400).send()
+          }
           res.status(200).send(info);
         });
       }

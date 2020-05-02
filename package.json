@@ -1,6 +1,6 @@
 {
   "name": "ninjakatt-plugin-qbittorrent",
-  "version": "1.0.9",
+  "version": "1.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@electorrent/node-qbittorrent": "^1.1.1",
     "fs-extra": "^6.0.1",
     "parse-torrent": "^6.0.1",
-    "pretty-bytes": "^5.1.0",
-    "qbittorrent-api": "^1.0.0"
+    "pretty-bytes": "^5.3.0"
   }
 }
