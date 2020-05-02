@@ -87,7 +87,7 @@ module.exports = class Qbittorrent {
       
       items.forEach(torrent => {
         if (shouldRemoveTorrent(torrent, this.settings) > 0) {
-          this.client.delete(torrent, error => {
+          this.client.delete(torrent.hash, error => {
             if (error) {
               global.emitter.emit(
                 'message',
