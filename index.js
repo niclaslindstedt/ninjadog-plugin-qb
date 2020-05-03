@@ -7,7 +7,7 @@ const {
   shouldRemoveTorrent,
   removeFilename,
   isTorrent,
-  extractRootDomain
+  extractRootDomain,
 } = require('./helpers');
 const { filename } = require(`${global.appRoot}/lib/helpers`);
 
@@ -17,6 +17,11 @@ const { filename } = require(`${global.appRoot}/lib/helpers`);
 module.exports = class Qbittorrent {
   constructor() {
     this.construct(__dirname);
+    /**
+     * @type {String[]}
+     * @description torrent hashes
+     */
+    this.currentlyDownloading = [];
   }
 
   get qbitsettings() {
@@ -25,11 +30,11 @@ module.exports = class Qbittorrent {
       port: this.settings.port,
       user: this.settings.username,
       pass: this.settings.password,
-    }
+    };
   }
 
   async setup() {
-    this.qb = new qb(this.qbitsettings)  
+    this.qb = new qb(this.qbitsettings);
 
     this.setupListeners();
     this.login();
@@ -42,20 +47,25 @@ module.exports = class Qbittorrent {
   }
 
   login() {
-    this.qb.login(function(err) {
-      if (err && err.code === 'ECONNREFUSED') {
-        global.emitter.emit(
-          'message',
-          `Could not connect to QBittorrent with these settings: ${JSON.stringify(this.qbitsettings)}`,
-          'error',
-          Qbittorrent.name
-        );
-        setTimeout(() => {
-          this.login();
-        }, 60000)
-      }      
-      this.checkSeed();
-    }.bind(this));
+    this.qb.login(
+      function (err) {
+        if (err && err.code === 'ECONNREFUSED') {
+          global.emitter.emit(
+            'message',
+            `Could not connect to QBittorrent with these settings: ${JSON.stringify(
+              this.qbitsettings
+            )}`,
+            'error',
+            Qbittorrent.name
+          );
+          setTimeout(() => {
+            this.login();
+          }, 60000);
+        }
+        this.checkSeed();
+        this.checkDownload();
+      }.bind(this)
+    );
   }
 
   checkSeedTimer() {
@@ -63,6 +73,13 @@ module.exports = class Qbittorrent {
       this.checkSeed();
     }, 300000);
   }
+
+  checkDownloadTimer() {
+    setTimeout(() => {
+      this.checkDownload();
+    }, 5000);
+  }
+
   /**
    * Connect to qbittorrent
    * @returns {qb}
@@ -73,8 +90,35 @@ module.exports = class Qbittorrent {
       return this.qb;
     } catch (e) {
       console.log(e);
-      
     }
+  }
+
+  checkDownload() {
+    this.client.getTorrents((error, items) => {
+      const currentlyDownloading = items.filter((x) => x.amount_left > 0);
+      this.currentlyDownloading.forEach((hash) => {
+        const torrentIndex = items.findIndex(
+          (torrent) => torrent.hash === hash
+        );
+        const torrent = items[torrentIndex];
+        if (torrent.amount_left === 0) {
+          emitter.emit(
+            'message',
+            `${torrent.name} has finished downloading`,
+            'info',
+            Qbittorrent.name
+          );
+          global.emitter.emit(
+            'qbittorrent.download-complete',
+            torrent,
+            'add',
+            Qbittorrent.name
+          );
+        }
+      });
+      this.currentlyDownloading = currentlyDownloading.map((x) => x.hash);
+      this.checkDownloadTimer();
+    });
   }
 
   checkSeed(options) {
@@ -84,10 +128,10 @@ module.exports = class Qbittorrent {
       if (error) {
         return;
       }
-      
-      items.forEach(torrent => {
+
+      items.forEach((torrent) => {
         if (shouldRemoveTorrent(torrent, this.settings) > 0) {
-          this.client.delete(torrent.hash, error => {
+          this.client.delete(torrent.hash, (error) => {
             if (error) {
               global.emitter.emit(
                 'message',
@@ -135,11 +179,11 @@ module.exports = class Qbittorrent {
   }
 
   addTorrent(torrentPath) {
-    const options = { 
-      savepath: removeFilename(torrentPath)
+    const options = {
+      savepath: removeFilename(torrentPath),
     };
 
-    this.client.addTorrentFile(torrentPath, options, error => {
+    this.client.addTorrentFile(torrentPath, options, (error) => {
       if (error) {
         global.emitter.emit(
           'message',
@@ -168,7 +212,7 @@ module.exports = class Qbittorrent {
     return fs
       .move(torrentPath, newPath, { overwrite: true })
       .then(() => newPath)
-      .catch(e => {});
+      .catch((e) => {});
   }
 
   getTorrentInfo(torrentPath) {
@@ -184,7 +228,7 @@ module.exports = class Qbittorrent {
   setupListeners() {
     global.emitter.register(
       'file.add',
-      path => {
+      (path) => {
         if (isTorrent(path)) {
           setTimeout(() => this.addTorrent(path), 2000);
         }
@@ -203,12 +247,12 @@ module.exports = class Qbittorrent {
       (req, res) => {
         this.client.getTorrents((error, list) => {
           if (error) {
-            return res.status(400).send()
+            return res.status(400).send();
           }
           res.status(200).send(
-            list.map(item => ({
+            list.map((item) => ({
               ...item,
-              trackerName: extractRootDomain(item.tracker)
+              trackerName: extractRootDomain(item.tracker),
             }))
           );
         });
@@ -220,9 +264,9 @@ module.exports = class Qbittorrent {
       'get',
       `/${prefix}/transferinfo`,
       (req, res) => {
-        this.client.syncMaindata((error, info) => { 
+        this.client.syncMaindata((error, info) => {
           if (error) {
-            return res.status(400).send()
+            return res.status(400).send();
           }
           res.status(200).send(info);
         });
