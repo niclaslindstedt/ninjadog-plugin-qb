@@ -50,13 +50,10 @@ module.exports = class Qbittorrent {
     this.qb.login(
       function (err) {
         if (err && err.code === 'ECONNREFUSED') {
-          global.emitter.emit(
-            'message',
-            `Could not connect to QBittorrent with these settings: ${JSON.stringify(
+          this.logError(
+            `Could not connect to qBittorrent with these settings: ${JSON.stringify(
               this.qbitsettings
-            )}`,
-            'error',
-            Qbittorrent.name
+            )}`
           );
           setTimeout(() => {
             this.login();
@@ -102,12 +99,7 @@ module.exports = class Qbittorrent {
         );
         const torrent = items[torrentIndex];
         if (torrent.amount_left === 0) {
-          emitter.emit(
-            'message',
-            `${torrent.name} has finished downloading`,
-            'info',
-            Qbittorrent.name
-          );
+          this.logInfo(`${torrent.name} has finished downloading`);
           global.emitter.emit(
             'qbittorrent.download-complete',
             torrent,
@@ -133,12 +125,7 @@ module.exports = class Qbittorrent {
         if (shouldRemoveTorrent(torrent, this.settings) > 0) {
           this.client.delete(torrent.hash, (error) => {
             if (error) {
-              global.emitter.emit(
-                'message',
-                `Error removing ${torrent.name}`,
-                'error',
-                Qbittorrent.name
-              );
+              this.logError(`Error removing ${torrent.name}`);
               return;
             }
             sendRemoveMessage(
@@ -174,7 +161,7 @@ module.exports = class Qbittorrent {
           message = `Removed ${name}. ${self.seedInfo(torrent)}`;
       }
 
-      global.emitter.emit('message', message, 'remove', Qbittorrent.name);
+      this.logInfo(message);
     }
   }
 
@@ -185,20 +172,10 @@ module.exports = class Qbittorrent {
 
     this.client.addTorrentFile(torrentPath, options, (error) => {
       if (error) {
-        global.emitter.emit(
-          'message',
-          `Error adding ${torrentPath}`,
-          'error',
-          Qbittorrent.name
-        );
+        this.logError(`Error adding ${torrentPath}`);
         return;
       }
-      global.emitter.emit(
-        'message',
-        `Added ${filename(torrentPath)}`,
-        'add',
-        Qbittorrent.name
-      );
+      this.logInfo(`Added ${filename(torrentPath)}`);
       this.moveTorrent(torrentPath);
     });
   }
