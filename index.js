@@ -117,7 +117,7 @@ module.exports = class Qbittorrent {
     const self = this;
     options = options || { label: 'public' };
     this.client.getTorrents((error, items) => {
-      if (error) {
+      if (error || !items) {
         return;
       }
 
