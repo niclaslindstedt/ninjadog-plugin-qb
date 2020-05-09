@@ -34,43 +34,54 @@ module.exports = class Qbittorrent {
   }
 
   async setup() {
+    this.logDebug('Setting up qbittorrent plugin');
     this.qb = new qb(this.qbitsettings);
-
-    this.subscribe('file.add', this.actOnFileAdd);
-    this.route('get', 'list', this.getList);
-    this.route('get', 'transferinfo', this.getTransferInfo);
-
     this.login();
   }
 
-  actOnFileAdd(path) {
-    if (isTorrent(path)) {
-      setTimeout(() => this.addTorrent(path), 2000);
-    }
+  subscriptions() {
+    this.subscribe('file.add', this.actOnFileAdd);
   }
 
-  getList(req, res) {
+  routes() {
+    this.route('get', 'list', this.getList);
+    this.route('get', 'transferinfo', this.getTransferInfo);
+  }
+
+  /********* Event Functions *********/
+
+  actOnFileAdd = (path) => {
+    if (isTorrent(path)) {
+      this.addTorrent(path);
+    }
+  };
+
+  /********* Route Functions *********/
+
+  getList = (req, res) => {
     this.client.getTorrents((error, list) => {
       if (error) {
         return res.status(400).send();
       }
-      res.status(200).send(
+      return res.status(200).send(
         list.map((item) => ({
           ...item,
           trackerName: extractRootDomain(item.tracker),
         }))
       );
     });
-  }
+  };
 
-  getTransferInfo(req, res) {
+  getTransferInfo = (req, res) => {
     this.client.syncMaindata((error, info) => {
       if (error) {
         return res.status(400).send();
       }
-      res.status(200).send(info);
+      return res.status(200).send(info);
     });
-  }
+  };
+
+  /********* Plugin Functions *********/
 
   login() {
     this.qb.login(
