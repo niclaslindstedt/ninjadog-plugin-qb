@@ -36,9 +36,9 @@ module.exports = class Qbittorrent {
   async setup() {
     this.qb = new qb(this.qbitsettings);
 
-    this.subscribe('file.add', actOnFileAdd);
-    this.route('get', 'list', getList);
-    this.route('get', 'transferinfo', getTransferInfo);
+    this.subscribe('file.add', this.actOnFileAdd);
+    this.route('get', 'list', this.getList);
+    this.route('get', 'transferinfo', this.getTransferInfo);
 
     this.login();
   }
