@@ -36,14 +36,40 @@ module.exports = class Qbittorrent {
   async setup() {
     this.qb = new qb(this.qbitsettings);
 
-    this.setupListeners();
-    this.login();
+    this.subscribe('file.add', actOnFileAdd);
+    this.route('get', 'list', getList);
+    this.route('get', 'transferinfo', getTransferInfo);
 
-    setTimeout(() => {
-      if (global.Ninjakatt.plugins.has('Webserver')) {
-        this.addWebroutes();
+    this.login();
+  }
+
+  actOnFileAdd(path) {
+    if (isTorrent(path)) {
+      setTimeout(() => this.addTorrent(path), 2000);
+    }
+  }
+
+  getList(req, res) {
+    this.client.getTorrents((error, list) => {
+      if (error) {
+        return res.status(400).send();
       }
-    }, 0);
+      res.status(200).send(
+        list.map((item) => ({
+          ...item,
+          trackerName: extractRootDomain(item.tracker),
+        }))
+      );
+    });
+  }
+
+  getTransferInfo(req, res) {
+    this.client.syncMaindata((error, info) => {
+      if (error) {
+        return res.status(400).send();
+      }
+      res.status(200).send(info);
+    });
   }
 
   login() {
@@ -200,54 +226,5 @@ module.exports = class Qbittorrent {
     return `[UL: ${prettyBytes(torrent.uploaded)} RATIO: ${Number(
       torrent.ratio
     ).toFixed(2)}]`;
-  }
-
-  setupListeners() {
-    global.emitter.register(
-      'file.add',
-      (path) => {
-        if (isTorrent(path)) {
-          setTimeout(() => this.addTorrent(path), 2000);
-        }
-      },
-      Qbittorrent.name
-    );
-  }
-
-  addWebroutes() {
-    const prefix = Qbittorrent.name.toLowerCase();
-
-    emitter.emit(
-      'webserver.add-route',
-      'get',
-      `/${prefix}/list`,
-      (req, res) => {
-        this.client.getTorrents((error, list) => {
-          if (error) {
-            return res.status(400).send();
-          }
-          res.status(200).send(
-            list.map((item) => ({
-              ...item,
-              trackerName: extractRootDomain(item.tracker),
-            }))
-          );
-        });
-      }
-    );
-
-    emitter.emit(
-      'webserver.add-route',
-      'get',
-      `/${prefix}/transferinfo`,
-      (req, res) => {
-        this.client.syncMaindata((error, info) => {
-          if (error) {
-            return res.status(400).send();
-          }
-          res.status(200).send(info);
-        });
-      }
-    );
   }
 };
