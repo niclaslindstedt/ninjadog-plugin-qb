@@ -86,16 +86,21 @@ module.exports = class Qbittorrent {
   login() {
     this.qb.login(
       function (err) {
-        if (err && err.code === 'ECONNREFUSED') {
-          this.logError(
-            `Could not connect to qBittorrent with these settings: ${JSON.stringify(
-              this.qbitsettings
-            )}`
-          );
+        if (err) {
+          if (err.code === 'ECONNREFUSED') {
+            this.logError(
+              `Could not connect to qBittorrent with these settings: ${JSON.stringify(
+                this.qbitsettings
+              )}`
+            );
+          } else {
+            this.logError(`Can't connect: ${err}`);
+          }
           setTimeout(() => {
             this.login();
           }, 60000);
         }
+        this.logInfo('Connected');
         this.checkSeed();
         this.checkDownload();
       }.bind(this)
@@ -122,13 +127,12 @@ module.exports = class Qbittorrent {
   get client() {
     try {
       return this.qb;
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) { }
   }
 
   checkDownload() {
     this.client.getTorrents((error, items) => {
+      if (!items) { return }
       const currentlyDownloading = items.filter((x) => x.amount_left > 0);
       this.currentlyDownloading.forEach((hash) => {
         const torrentIndex = items.findIndex(
@@ -198,7 +202,7 @@ module.exports = class Qbittorrent {
           message = `Removed ${name}. ${self.seedInfo(torrent)}`;
       }
 
-      this.logInfo(message);
+      this.logRemoval(message);
     }
   }
 
@@ -212,7 +216,7 @@ module.exports = class Qbittorrent {
         this.logError(`Error adding ${torrentPath}`);
         return;
       }
-      this.logInfo(`Added ${filename(torrentPath)}`);
+      this.logAddition(`Added ${filename(torrentPath)}`);
       this.moveTorrent(torrentPath);
     });
   }
@@ -225,8 +229,13 @@ module.exports = class Qbittorrent {
 
     return fs
       .move(torrentPath, newPath, { overwrite: true })
-      .then(() => newPath)
-      .catch((e) => {});
+      .then(() => {
+        this.logDebug(`Moved ${torrentPath} to ${newPath}`);
+        return newPath;
+      })
+      .catch((e) => {
+        this.logError(`Error while moving ${torrentPath} to ${newPath}, ${e}`)
+      });
   }
 
   getTorrentInfo(torrentPath) {
