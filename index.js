@@ -127,12 +127,17 @@ module.exports = class Qbittorrent {
   get client() {
     try {
       return this.qb;
-    } catch (e) { }
+    } catch (e) {
+      this.logError(e);
+      return null;
+    }
   }
 
   checkDownload() {
     this.client.getTorrents((error, items) => {
-      if (!items) { return }
+      if (!items) {
+        return;
+      }
       const currentlyDownloading = items.filter((x) => x.amount_left > 0);
       this.currentlyDownloading.forEach((hash) => {
         const torrentIndex = items.findIndex(
@@ -157,6 +162,7 @@ module.exports = class Qbittorrent {
   checkSeed(options) {
     const self = this;
     options = options || { label: 'public' };
+    this.logConsole(options);
     this.client.getTorrents((error, items) => {
       if (error || !items) {
         return;
@@ -234,7 +240,7 @@ module.exports = class Qbittorrent {
         return newPath;
       })
       .catch((e) => {
-        this.logError(`Error while moving ${torrentPath} to ${newPath}, ${e}`)
+        this.logError(`Error while moving ${torrentPath} to ${newPath}, ${e}`);
       });
   }
 

@@ -15,7 +15,9 @@
  */
 const shouldRemoveTorrent = (torrent, settings) => {
   let reason = 0;
-  if (torrent.progress < 1) return reason;
+  if (torrent.progress < 1) {
+    return reason;
+  }
 
   if (
     torrent.label == 'public' &&
@@ -41,7 +43,7 @@ const shouldRemoveTorrent = (torrent, settings) => {
  * @param {Number} unixTime
  * @returns {Number} number of days ago
  */
-const daysAgo = unixTime => {
+const daysAgo = (unixTime) => {
   const completed_on = new Date(+unixTime * 1000);
   const date_now = new Date();
   const msInADay = 8.64e7;
@@ -53,7 +55,7 @@ const daysAgo = unixTime => {
  * @param {string} path
  * @returns
  */
-const removeFilename = path => {
+const removeFilename = (path) => {
   if (path.match(/\\/)) {
     return path.substring(0, path.lastIndexOf('\\'));
   }
@@ -69,12 +71,12 @@ const removeFilename = path => {
  * @param {string} path
  * @returns
  */
-const isTorrent = path => {
+const isTorrent = (path) => {
   return path.endsWith('.torrent');
 };
 
 // https://stackoverflow.com/a/23945027
-const extractHostname = url => {
+const extractHostname = (url) => {
   var hostname;
   //find & remove protocol (http, ftp, etc.) and get hostname
 
@@ -92,7 +94,7 @@ const extractHostname = url => {
   return hostname;
 };
 
-const extractRootDomain = url => {
+const extractRootDomain = (url) => {
   var domain = extractHostname(url),
     splitArr = domain.split('.'),
     arrLen = splitArr.length;
@@ -116,5 +118,5 @@ module.exports = {
   removeFilename,
   isTorrent,
   extractHostname,
-  extractRootDomain
+  extractRootDomain,
 };
