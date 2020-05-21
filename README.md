@@ -1,1 +1,1 @@
-ninjadog-plugin-qbittorrent
+ninjadog-plugin-qb

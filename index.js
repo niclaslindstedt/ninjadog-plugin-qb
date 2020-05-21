@@ -11,10 +11,7 @@ const {
 } = require('./helpers');
 const { filename } = require(`${global.appRoot}/lib/helpers`);
 
-/**
- * Qbittorrent.
- */
-module.exports = class Qbittorrent {
+module.exports = class Qb {
 
   constructor() {
     this.construct(__dirname);
@@ -150,7 +147,7 @@ module.exports = class Qbittorrent {
             'qbittorrent.download-complete',
             torrent,
             'add',
-            Qbittorrent.name
+            Qb.name
           );
         }
       });
