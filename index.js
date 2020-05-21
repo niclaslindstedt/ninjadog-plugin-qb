@@ -35,7 +35,6 @@ module.exports = class Qbittorrent {
   }
 
   async setup() {
-    this.logDebug('Setting up qbittorrent plugin');
     this.qb = new qb(this.qbitsettings);
     this.login();
   }
@@ -49,7 +48,7 @@ module.exports = class Qbittorrent {
     this.route('get', 'transferinfo', this.getTransferInfo);
   }
 
-  /** ******* Event Functions *********/
+  /** Event Functions **/
 
   actOnFileAdd = (path) => {
     if (isTorrent(path)) {
@@ -57,7 +56,7 @@ module.exports = class Qbittorrent {
     }
   };
 
-  /** ******* Route Functions *********/
+  /** Route Functions **/
 
   getList = (req, res) => {
     this.client.getTorrents((error, list) => {
@@ -82,7 +81,7 @@ module.exports = class Qbittorrent {
     });
   };
 
-  /** ******* Plugin Functions *********/
+  /** Plugin Functions **/
 
   login() {
     this.qb.login(
