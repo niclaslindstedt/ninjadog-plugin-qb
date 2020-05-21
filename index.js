@@ -15,6 +15,7 @@ const { filename } = require(`${global.appRoot}/lib/helpers`);
  * Qbittorrent.
  */
 module.exports = class Qbittorrent {
+
   constructor() {
     this.construct(__dirname);
     /**
@@ -48,7 +49,7 @@ module.exports = class Qbittorrent {
     this.route('get', 'transferinfo', this.getTransferInfo);
   }
 
-  /********* Event Functions *********/
+  /** ******* Event Functions *********/
 
   actOnFileAdd = (path) => {
     if (isTorrent(path)) {
@@ -56,7 +57,7 @@ module.exports = class Qbittorrent {
     }
   };
 
-  /********* Route Functions *********/
+  /** ******* Route Functions *********/
 
   getList = (req, res) => {
     this.client.getTorrents((error, list) => {
@@ -81,7 +82,7 @@ module.exports = class Qbittorrent {
     });
   };
 
-  /********* Plugin Functions *********/
+  /** ******* Plugin Functions *********/
 
   login() {
     this.qb.login(
@@ -170,7 +171,7 @@ module.exports = class Qbittorrent {
         if (shouldRemoveTorrent(torrent, this.settings) > 0) {
           this.client.delete(torrent.hash, (error) => {
             if (error) {
-              this.logError(`Error removing ${torrent.name}`);
+              this.logError(`Error removing ${torrent.name}: ${error}`);
               return;
             }
             sendRemoveMessage(
@@ -217,7 +218,7 @@ module.exports = class Qbittorrent {
 
     this.client.addTorrentFile(torrentPath, options, (error) => {
       if (error) {
-        this.logError(`Error adding ${torrentPath}`);
+        this.logError(`Error adding ${torrentPath}: ${error}`);
         return;
       }
       this.logInfo(`Added ${filename(torrentPath)}`);
@@ -251,4 +252,5 @@ module.exports = class Qbittorrent {
       torrent.ratio
     ).toFixed(2)}]`;
   }
+
 };
