@@ -159,10 +159,8 @@ module.exports = class Qbittorrent {
     });
   }
 
-  checkSeed(options) {
+  checkSeed() {
     const self = this;
-    options = options || { label: 'public' };
-    this.logConsole(options);
     this.client.getTorrents((error, items) => {
       if (error || !items) {
         return;
@@ -208,7 +206,7 @@ module.exports = class Qbittorrent {
           message = `Removed ${name}. ${self.seedInfo(torrent)}`;
       }
 
-      this.logRemoval(message);
+      this.logInfo(message);
     }
   }
 
@@ -222,7 +220,7 @@ module.exports = class Qbittorrent {
         this.logError(`Error adding ${torrentPath}`);
         return;
       }
-      this.logAddition(`Added ${filename(torrentPath)}`);
+      this.logInfo(`Added ${filename(torrentPath)}`);
       this.moveTorrent(torrentPath);
     });
   }
